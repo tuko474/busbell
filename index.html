@@ -20,8 +20,6 @@
         .transport-buttons { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 500px; }
         .transport-btn { background: #3b82f6; color: white; padding: 25px; border: none; border-radius: 20px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: all 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
         .transport-btn:hover:not(.disabled) { transform: scale(1.05); box-shadow: 0 15px 40px rgba(0,0,0,0.3); }
-        .transport-btn.purple { background: #8b5cf6; }
-        .transport-btn.red { background: #ef4444; }
         .transport-btn.disabled { opacity: 0.5; cursor: not-allowed; }
         .transport-info { display: flex; align-items: center; gap: 20px; }
         .transport-icon { font-size: 48px; }
@@ -48,7 +46,7 @@
         #map { flex: 1; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
         .modal.show { display: flex; }
-        .modal-content { background: white; border-radius: 20px; padding: 30px; max-width: 500px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .modal-content { background: white; border-radius: 20px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .modal-header h3 { font-size: 24px; }
         .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: #9ca3af; }
@@ -91,14 +89,6 @@
                 <div class="transport-info"><div class="transport-icon">🚌</div><div class="transport-text"><h3>Автобусы</h3><p>2 маршрутов</p></div></div>
                 <span style="font-size: 32px;">→</span>
             </button>
-            <button class="transport-btn purple disabled">
-                <div class="transport-info"><div class="transport-icon">🚆</div><div class="transport-text"><h3>Электрички</h3><p>Скоро</p></div></div>
-                <span style="font-size: 32px;">→</span>
-            </button>
-            <button class="transport-btn red disabled">
-                <div class="transport-info"><div class="transport-icon">🚇</div><div class="transport-text"><h3>Метро</h3><p>Скоро</p></div></div>
-                <span style="font-size: 32px;">→</span>
-            </button>
         </div>
         <div id="alertsList" class="alerts-list" style="display: none;">
             <div class="alerts-header"><h3>🔔 Активные напоминания</h3><span class="alerts-count" id="alertsCount">0</span></div>
@@ -109,9 +99,9 @@
         <div class="map-header">
             <div class="header-top">
                 <button class="back-btn" onclick="goHome()">✕</button>
-                <div class="header-title"><h2><span>🚌</span> Автобусы</h2><p>Краснодар • 2 маршрутов</p></div>
+                <div class="header-title"><h2><span>🚌</span> Автобусы Краснодара</h2><p>2 маршрутов</p></div>
             </div>
-            <div class="search-box"><span class="search-icon">🔍</span><input type="text" id="searchInput" placeholder="Поиск маршрута (№5, №7...)" oninput="searchRoute(this.value)"></div>
+            <div class="search-box"><span class="search-icon">🔍</span><input type="text" id="searchInput" placeholder="Поиск маршрута (177, 7а...)" oninput="searchRoute(this.value)"></div>
             <div id="routeInfo" class="route-info">
                 <div class="route-details"><div class="route-number" id="routeNumber"></div><div class="route-text"><h4 id="routeName"></h4><p id="routeStops"></p></div></div>
                 <button class="close-route" onclick="clearRoute()">✕</button>
@@ -138,23 +128,60 @@
     </div>
     <script>
         let map, selectedStop, selectedRoute, selectedSound = 'bell', activeAlerts = [], userLocationMarker = null, watchId = null;
-        const routes = {bus: [{id: 1, number: '5', name: 'Микрорайон - ККБ №1', color: '#2563eb', stops: [{id: 1, name: 'Микрорайон', coords: [45.0448, 38.9760]}, {id: 2, name: 'ул. Тургенева', coords: [45.0398, 38.9800]}, {id: 3, name: 'Театральная площадь', coords: [45.0355, 38.9750]}, {id: 4, name: 'ул. Красная', coords: [45.0330, 38.9780]}, {id: 5, name: 'Парк Городской', coords: [45.0280, 38.9820]}, {id: 6, name: 'ККБ №1', coords: [45.0220, 38.9850]}]}, {id: 2, number: '7', name: 'ЖД Вокзал - ТЦ Галактика', color: '#16a34a', stops: [{id: 7, name: 'ЖД Вокзал', coords: [45.0380, 38.9720]}, {id: 8, name: 'Площадь Труда', coords: [45.0350, 38.9765]}, {id: 9, name: 'ул. Ставропольская', coords: [45.0315, 38.9810]}, {id: 10, name: 'ТРЦ Красная Площадь', coords: [45.0270, 38.9865]}, {id: 11, name: 'ТЦ Галактика', coords: [45.0210, 38.9920]}]}]};
+        const routes = {bus: [
+            {id: 1, number: '177', name: 'МЕГА - Невкипелого', color: '#dc2626', stops: [
+                {id: 1, name: 'ТЦ МЕГА', coords: [45.0890, 38.9180]},
+                {id: 2, name: 'ул. Московская', coords: [45.0850, 38.9250]},
+                {id: 3, name: 'ул. Бургасская', coords: [45.0810, 38.9320]},
+                {id: 4, name: 'Нефтебаза', coords: [45.0780, 38.9380]},
+                {id: 5, name: 'Почта', coords: [45.0750, 38.9430]},
+                {id: 6, name: 'ул. Российская', coords: [45.0720, 38.9480]},
+                {id: 7, name: 'Рынок Столица', coords: [45.0690, 38.9530]},
+                {id: 8, name: 'ул. Атарбекова', coords: [45.0660, 38.9580]},
+                {id: 9, name: 'ТЭЦ', coords: [45.0630, 38.9620]},
+                {id: 10, name: 'Завод им. Седина', coords: [45.0600, 38.9670]},
+                {id: 11, name: 'ул. Гидростроителей', coords: [45.0570, 38.9720]},
+                {id: 12, name: 'Площадь Труда', coords: [45.0540, 38.9760]},
+                {id: 13, name: 'ул. Красная', coords: [45.0510, 38.9800]},
+                {id: 14, name: 'Театральная площадь', coords: [45.0480, 38.9840]},
+                {id: 15, name: 'ул. Мира', coords: [45.0450, 38.9880]},
+                {id: 16, name: 'Детская больница', coords: [45.0420, 38.9920]},
+                {id: 17, name: 'ул. Тургенева', coords: [45.0390, 38.9960]},
+                {id: 18, name: 'Парк Солнечный остров', coords: [45.0360, 39.0000]},
+                {id: 19, name: 'Стадион', coords: [45.0330, 39.0040]},
+                {id: 20, name: 'ул. Невкипелого', coords: [45.0300, 39.0080]}
+            ]},
+            {id: 2, number: '7А', name: 'МЕГА - аул Новая Адыгея', color: '#16a34a', stops: [
+                {id: 21, name: 'ТЦ МЕГА', coords: [45.0890, 38.9180]},
+                {id: 22, name: 'ул. Уральская', coords: [45.0920, 38.9220]},
+                {id: 23, name: 'Гипермаркет Магнит', coords: [45.0950, 38.9260]},
+                {id: 24, name: 'ул. Тихорецкая', coords: [45.0980, 38.9300]},
+                {id: 25, name: 'Пашковская', coords: [45.1010, 38.9340]},
+                {id: 26, name: 'ул. Передовая', coords: [45.1040, 38.9380]},
+                {id: 27, name: 'Школа №78', coords: [45.1070, 38.9420]},
+                {id: 28, name: 'Больница', coords: [45.1100, 38.9460]},
+                {id: 29, name: 'Кооперативный рынок', coords: [45.1130, 38.9500]},
+                {id: 30, name: 'ул. Промышленная', coords: [45.1160, 38.9540]},
+                {id: 31, name: 'ул. Заводская', coords: [45.1190, 38.9580]},
+                {id: 32, name: 'аул Новая Адыгея', coords: [45.1220, 38.9620]}
+            ]}
+        ]};
         function selectTransport(t) {document.getElementById('homeScreen').style.display='none';document.getElementById('mapScreen').style.display='flex';initMap();}
         function goHome() {document.getElementById('mapScreen').style.display='none';document.getElementById('homeScreen').style.display='flex';if(watchId)navigator.geolocation.clearWatch(watchId);}
-        function initMap() {ymaps.ready(function() {map=new ymaps.Map('map',{center:[45.0355,38.9750],zoom:13,controls:['zoomControl']});routes.bus.forEach(route=>{const poly=new ymaps.Polyline(route.stops.map(s=>s.coords),{},{strokeColor:route.color,strokeWidth:4,strokeOpacity:0.7});map.geoObjects.add(poly);route.stops.forEach(stop=>{const p=new ymaps.Placemark(stop.coords,{balloonContent:`<strong>${stop.name}</strong><br>${route.name}`},{preset:'islands#blueCircleDotIcon',iconColor:route.color});p.events.add('click',()=>openAlertModal(stop,route));map.geoObjects.add(p);});});startTracking();});}
-        function startTracking() {if(navigator.geolocation){watchId=navigator.geolocation.watchPosition(pos=>{const c=[pos.coords.latitude,pos.coords.longitude];if(userLocationMarker)map.geoObjects.remove(userLocationMarker);userLocationMarker=new ymaps.Placemark(c,{balloonContent:'Вы здесь'},{preset:'islands#blueDotIcon'});map.geoObjects.add(userLocationMarker);checkProximity(c);},e=>console.error(e),{enableHighAccuracy:true,timeout:5000,maximumAge:0});if(Notification.permission==='default')Notification.requestPermission();}}
+        function initMap() {ymaps.ready(function() {map=new ymaps.Map('map',{center:[45.0540,38.9760],zoom:12,controls:['zoomControl']});routes.bus.forEach(route=>{const poly=new ymaps.Polyline(route.stops.map(s=>s.coords),{},{strokeColor:route.color,strokeWidth:5,strokeOpacity:0.8});map.geoObjects.add(poly);route.stops.forEach(stop=>{const p=new ymaps.Placemark(stop.coords,{balloonContent:`<strong>${stop.name}</strong><br>Маршрут ${route.number}: ${route.name}`,hintContent:stop.name},{preset:'islands#blueCircleDotIcon',iconColor:route.color});p.events.add('click',()=>openAlertModal(stop,route));map.geoObjects.add(p);});});startTracking();});}
+        function startTracking() {if(navigator.geolocation){watchId=navigator.geolocation.watchPosition(pos=>{const c=[pos.coords.latitude,pos.coords.longitude];if(userLocationMarker)map.geoObjects.remove(userLocationMarker);userLocationMarker=new ymaps.Placemark(c,{balloonContent:'Вы здесь',hintContent:'Ваше местоположение'},{preset:'islands#redDotIcon',iconColor:'#3b82f6'});map.geoObjects.add(userLocationMarker);checkProximity(c);},e=>console.error(e),{enableHighAccuracy:true,timeout:5000,maximumAge:0});if(Notification.permission==='default')Notification.requestPermission();}}
         function checkProximity(uc) {activeAlerts.forEach(a=>{if(!a.triggered&&getDistance(uc,a.stop.coords)<500)triggerAlert(a);});}
         function getDistance(c1,c2) {const R=6371e3,p1=c1[0]*Math.PI/180,p2=c2[0]*Math.PI/180,dp=(c2[0]-c1[0])*Math.PI/180,dl=(c2[1]-c1[1])*Math.PI/180,a=Math.sin(dp/2)*Math.sin(dp/2)+Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)*Math.sin(dl/2);return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
-        function triggerAlert(a) {playSound(a.sound);if('vibrate' in navigator)navigator.vibrate([200,100,200]);if(Notification.permission==='granted')new Notification('🔔 BUS BELL',{body:a.text||`Остановка "${a.stop.name}"`});a.triggered=true;updateAlertsList();alert(`🔔 BUS BELL\n\n${a.text||`Вы приближаетесь к остановке "${a.stop.name}"`}`);}
-        function playSound(s) {const c=new(window.AudioContext||window.webkitAudioContext)(),f={bell:[800,600],alarm:[1000,800,1000],chime:[523,659,784],beep:[1200,1200]}[s];f.forEach((fr,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=fr;o.type='sine';g.gain.setValueAtTime(0.3,c.currentTime+i*0.3);g.gain.exponentialRampToValueAtTime(0.01,c.currentTime+i*0.3+0.3);o.start(c.currentTime+i*0.3);o.stop(c.currentTime+i*0.3+0.3);});}
+        function triggerAlert(a) {playSound(a.sound);if('vibrate' in navigator)navigator.vibrate([200,100,200,100,200]);if(Notification.permission==='granted')new Notification('🔔 BUS BELL - Остановка близко!',{body:a.text||`Остановка "${a.stop.name}" через 500 метров`,icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="75" font-size="75">🔔</text></svg>',vibrate:[200,100,200]});a.triggered=true;updateAlertsList();alert(`🔔 BUS BELL\n\nВНИМАНИЕ!\n${a.text||`Остановка "${a.stop.name}" через 500 метров!`}\n\nМаршрут ${a.route.number}`);}
+        function playSound(s) {const c=new(window.AudioContext||window.webkitAudioContext)(),f={bell:[800,600],alarm:[1000,800,1000],chime:[523,659,784],beep:[1200,1200]}[s];f.forEach((fr,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=fr;o.type='sine';g.gain.setValueAtTime(0.4,c.currentTime+i*0.3);g.gain.exponentialRampToValueAtTime(0.01,c.currentTime+i*0.3+0.5);o.start(c.currentTime+i*0.3);o.stop(c.currentTime+i*0.3+0.5);});}
         function searchRoute(q) {if(!q){clearRoute();return;}const f=routes.bus.find(r=>r.number.toLowerCase().includes(q.toLowerCase())||r.name.toLowerCase().includes(q.toLowerCase()));if(f)showRoute(f);else clearRoute();}
         function showRoute(r) {document.getElementById('routeInfo').classList.add('show');document.getElementById('routeNumber').style.backgroundColor=r.color;document.getElementById('routeNumber').textContent=r.number;document.getElementById('routeName').textContent=r.name;document.getElementById('routeStops').textContent=`${r.stops.length} остановок`;map.setBounds(r.stops.map(s=>s.coords),{checkZoomRange:true,zoomMargin:50});}
         function clearRoute() {document.getElementById('routeInfo').classList.remove('show');document.getElementById('searchInput').value='';}
-        function openAlertModal(s,r) {selectedStop=s;selectedRoute=r;document.getElementById('modalRouteNumber').style.backgroundColor=r.color;document.getElementById('modalRouteNumber').textContent=r.number;document.getElementById('modalStopName').textContent=s.name;document.getElementById('modalRouteName').textContent=r.name;document.getElementById('alertText').value='';document.getElementById('alertModal').classList.add('show');}
+        function openAlertModal(s,r) {selectedStop=s;selectedRoute=r;document.getElementById('modalRouteNumber').style.backgroundColor=r.color;document.getElementById('modalRouteNumber').textContent=r.number;document.getElementById('modalStopName').textContent=s.name;document.getElementById('modalRouteName').textContent=`Маршрут ${r.number}: ${r.name}`;document.getElementById('alertText').value='';document.getElementById('alertModal').classList.add('show');}
         function closeModal() {document.getElementById('alertModal').classList.remove('show');}
         function selectSound(s) {selectedSound=s;document.querySelectorAll('.sound-option').forEach(e=>e.classList.remove('selected'));event.target.closest('.sound-option').classList.add('selected');}
-        function createAlert() {const t=document.getElementById('alertText').value,a={id:Date.now(),stop:selectedStop,route:selectedRoute,text:t,sound:selectedSound,triggered:false};activeAlerts.push(a);updateAlertsList();closeModal();alert('✅ Напоминание создано!\n\nВы получите уведомление за 500 метров до остановки.');}
-        function updateAlertsList() {const c=document.getElementById('alertsContainer'),l=document.getElementById('alertsList'),n=document.getElementById('alertsCount');if(activeAlerts.length===0){l.style.display='none';return;}l.style.display='block';n.textContent=activeAlerts.filter(a=>!a.triggered).length;c.innerHTML=activeAlerts.map(a=>`<div class="alert-item" style="${a.triggered?'opacity:0.5;':''}"><div class="alert-info"><h4>${a.stop.name}</h4><p>${a.route.name} №${a.route.number}</p></div><button class="delete-alert" onclick="deleteAlert(${a.id})">✕</button></div>`).join('');}
+        function createAlert() {const t=document.getElementById('alertText').value,a={id:Date.now(),stop:selectedStop,route:selectedRoute,text:t,sound:selectedSound,triggered:false};activeAlerts.push(a);updateAlertsList();closeModal();alert(`✅ Напоминание создано!\n\nОстановка: ${selectedStop.name}\nМаршрут ${selectedRoute.number}\n\nВы получите уведомление за 500 метров до остановки.`);}
+        function updateAlertsList() {const c=document.getElementById('alertsContainer'),l=document.getElementById('alertsList'),n=document.getElementById('alertsCount');if(activeAlerts.length===0){l.style.display='none';return;}l.style.display='block';n.textContent=activeAlerts.filter(a=>!a.triggered).length;c.innerHTML=activeAlerts.map(a=>`<div class="alert-item" style="${a.triggered?'opacity:0.5;':''}"><div class="alert-info"><h4>${a.stop.name}</h4><p>Маршрут ${a.route.number}: ${a.route.name}</p></div><button class="delete-alert" onclick="deleteAlert(${a.id})">✕</button></div>`).join('');}
         function deleteAlert(i) {activeAlerts=activeAlerts.filter(a=>a.id!==i);updateAlertsList();}
     </script>
 </body>
