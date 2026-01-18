@@ -8,102 +8,106 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
         body { background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 50%, #6b21a8 100%); min-height: 100vh; }
-        .home-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; text-align: center; padding: 20px; }
+        .home-screen { display: flex; flex-direction: column; align-items: center; justify-content: space-between; min-height: 100vh; padding: 40px 20px 0; }
+        .home-top { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .logo { width: 120px; height: 120px; background: white; border-radius: 30px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); position: relative; transition: transform 0.3s; }
         .logo:hover { transform: scale(1.1); }
         .logo-text { font-size: 48px; font-weight: 900; background: linear-gradient(135deg, #2563eb, #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .logo-bell { position: absolute; top: -5px; right: -5px; font-size: 32px; animation: ring 2s infinite; }
         @keyframes ring { 0%, 100% { transform: rotate(0deg); } 10% { transform: rotate(15deg); } 20% { transform: rotate(-15deg); } 30% { transform: rotate(10deg); } 40% { transform: rotate(-10deg); } 50% { transform: rotate(0deg); } }
         h1 { color: white; font-size: 56px; font-weight: 900; margin-bottom: 10px; }
-        .subtitle { color: rgba(255,255,255,0.9); font-size: 20px; margin-bottom: 5px; }
-        .city { color: rgba(255,255,255,0.7); font-size: 14px; margin-bottom: 40px; }
-        .transport-buttons { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 500px; }
-        .transport-btn { background: #3b82f6; color: white; padding: 25px; border: none; border-radius: 20px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: all 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        .transport-btn:hover:not(.disabled) { transform: scale(1.05); box-shadow: 0 15px 40px rgba(0,0,0,0.3); }
-        .transport-btn.disabled { opacity: 0.5; cursor: not-allowed; }
-        .transport-info { display: flex; align-items: center; gap: 20px; }
-        .transport-icon { font-size: 48px; }
-        .transport-text h3 { font-size: 24px; margin-bottom: 5px; text-align: left; }
-        .transport-text p { font-size: 14px; opacity: 0.9; text-align: left; }
+        .subtitle { color: rgba(255,255,255,0.9); font-size: 20px; margin-bottom: 20px; }
+        .location-info { background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); padding: 15px 30px; border-radius: 20px; color: white; font-size: 16px; margin-bottom: 20px; display: none; }
+        .location-info.show { display: block; }
+        .location-icon { display: inline-block; margin-right: 8px; font-size: 18px; }
+        .transport-icons { display: flex; gap: 30px; justify-content: center; padding: 30px; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 30px 30px 0 0; width: 100%; }
+        .transport-icon-wrapper { display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: pointer; transition: transform 0.3s; }
+        .transport-icon-wrapper:hover { transform: translateY(-10px); }
+        .transport-icon-wrapper.disabled { opacity: 0.4; cursor: not-allowed; }
+        .icon-circle { width: 90px; height: 90px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 48px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); transition: all 0.3s; }
+        .icon-circle.bus { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .icon-circle.train { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .icon-circle.metro { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .transport-icon-wrapper:hover .icon-circle { box-shadow: 0 15px 40px rgba(0,0,0,0.4); transform: scale(1.1); }
+        .transport-icon-wrapper:hover .icon-circle.bus { animation: busMove 0.5s ease-in-out infinite; }
+        .transport-icon-wrapper:hover .icon-circle.train { animation: trainMove 0.8s ease-in-out infinite; }
+        .transport-icon-wrapper:hover .icon-circle.metro { animation: metroGlow 0.6s ease-in-out infinite; }
+        @keyframes busMove { 0%, 100% { transform: scale(1.1) translateX(0); } 50% { transform: scale(1.1) translateX(3px); } }
+        @keyframes trainMove { 0%, 100% { transform: scale(1.1); } 50% { transform: scale(1.1) translateX(5px); } }
+        @keyframes metroGlow { 0%, 100% { box-shadow: 0 15px 40px rgba(239, 68, 68, 0.6); } 50% { box-shadow: 0 15px 50px rgba(239, 68, 68, 0.9); } }
+        .icon-label { color: white; font-size: 14px; font-weight: 600; }
+        .icon-sublabel { color: rgba(255,255,255,0.7); font-size: 12px; }
         .map-screen { display: none; flex-direction: column; height: 100vh; }
         .map-header { background: white; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         .header-top { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
         .back-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #666; }
         .header-title { flex: 1; }
-        .header-title h2 { font-size: 24px; color: #1f2937; display: flex; align-items: center; gap: 10px; }
+        .header-title h2 { font-size: 24px; color: #1f2937; }
         .header-title p { font-size: 14px; color: #6b7280; }
         .search-box { position: relative; }
         .search-box input { width: 100%; padding: 15px 15px 15px 45px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 16px; outline: none; }
-        .search-box input:focus { border-color: #3b82f6; }
-        .search-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #9ca3af; }
+        .search-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); }
         .route-info { margin-top: 15px; padding: 15px; background: #eff6ff; border: 2px solid #93c5fd; border-radius: 12px; display: none; }
         .route-info.show { display: flex; }
-        .route-details { display: flex; align-items: center; gap: 15px; flex: 1; }
+        .route-details { display: flex; gap: 15px; flex: 1; }
         .route-number { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 20px; }
-        .route-text h4 { font-size: 16px; margin-bottom: 5px; }
-        .route-text p { font-size: 12px; color: #6b7280; }
-        .close-route { background: none; border: none; font-size: 20px; cursor: pointer; color: #6b7280; }
+        .close-route { background: none; border: none; font-size: 20px; cursor: pointer; }
         #map { flex: 1; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
         .modal.show { display: flex; }
-        .modal-content { background: white; border-radius: 20px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .modal-header h3 { font-size: 24px; }
-        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: #9ca3af; }
-        .stop-info { padding: 20px; background: linear-gradient(135deg, #eff6ff 0%, #f3e8ff 100%); border-radius: 12px; margin-bottom: 20px; }
-        .stop-details { display: flex; align-items: center; gap: 15px; }
+        .modal-content { background: white; border-radius: 20px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; }
+        .stop-info { padding: 20px; background: linear-gradient(135deg, #eff6ff, #f3e8ff); border-radius: 12px; margin-bottom: 20px; }
+        .stop-details { display: flex; gap: 15px; }
         .stop-route-number { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px; }
-        .stop-text h4 { font-size: 18px; margin-bottom: 5px; }
-        .stop-text p { font-size: 14px; color: #6b7280; }
         .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; font-weight: 600; margin-bottom: 10px; color: #1f2937; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 10px; }
         .form-group input { width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 16px; outline: none; }
-        .form-group input:focus { border-color: #3b82f6; }
         .sound-options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        .sound-option { padding: 15px; border: 2px solid #e5e7eb; border-radius: 12px; cursor: pointer; transition: all 0.3s; text-align: center; }
-        .sound-option:hover { border-color: #3b82f6; }
+        .sound-option { padding: 15px; border: 2px solid #e5e7eb; border-radius: 12px; cursor: pointer; text-align: center; }
         .sound-option.selected { border-color: #3b82f6; background: #eff6ff; }
-        .sound-option .icon { font-size: 32px; margin-bottom: 5px; }
+        .sound-option .icon { font-size: 32px; }
         .sound-option .name { font-size: 14px; font-weight: 600; }
-        .create-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; transition: all 0.3s; }
-        .create-btn:hover { transform: scale(1.02); box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3); }
+        .create-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; }
         .radius-note { text-align: center; color: #6b7280; font-size: 12px; margin-top: 10px; }
-        .alerts-list { margin-top: 20px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); padding: 20px; border-radius: 20px; max-width: 500px; width: 100%; }
-        .alerts-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; color: white; }
-        .alerts-header h3 { display: flex; align-items: center; gap: 10px; }
-        .alerts-count { background: white; color: #8b5cf6; padding: 5px 12px; border-radius: 20px; font-weight: bold; }
-        .alert-item { background: rgba(255,255,255,0.3); padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; color: white; }
-        .alert-info h4 { font-size: 14px; margin-bottom: 5px; }
-        .alert-info p { font-size: 12px; opacity: 0.9; }
-        .delete-alert { background: rgba(239, 68, 68, 0.8); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 18px; }
     </style>
 </head>
 <body>
     <div id="homeScreen" class="home-screen">
-        <div class="logo"><div class="logo-text">BB</div><div class="logo-bell">🔔</div></div>
-        <h1>BUS BELL</h1>
-        <p class="subtitle">Не проспи свою остановку</p>
-        <p class="city">г. Краснодар</p>
-        <div class="transport-buttons">
-            <button class="transport-btn" onclick="selectTransport('bus')">
-                <div class="transport-info"><div class="transport-icon">🚌</div><div class="transport-text"><h3>Автобусы</h3><p>2 маршрутов</p></div></div>
-                <span style="font-size: 32px;">→</span>
-            </button>
+        <div class="home-top">
+            <div class="logo"><div class="logo-text">BB</div><div class="logo-bell">🔔</div></div>
+            <h1>BUS BELL</h1>
+            <p class="subtitle">Не проспи свою остановку</p>
+            <div id="locationInfo" class="location-info"><span class="location-icon">📍</span><span id="cityName">Определяем местоположение...</span></div>
         </div>
-        <div id="alertsList" class="alerts-list" style="display: none;">
-            <div class="alerts-header"><h3>🔔 Активные напоминания</h3><span class="alerts-count" id="alertsCount">0</span></div>
-            <div id="alertsContainer"></div>
+        <div class="transport-icons">
+            <div class="transport-icon-wrapper" onclick="selectTransport()">
+                <div class="icon-circle bus">🚌</div>
+                <div class="icon-label">Автобусы</div>
+                <div class="icon-sublabel">2 маршрутов</div>
+            </div>
+            <div class="transport-icon-wrapper disabled">
+                <div class="icon-circle train">🚆</div>
+                <div class="icon-label">Электрички</div>
+                <div class="icon-sublabel">Скоро</div>
+            </div>
+            <div class="transport-icon-wrapper disabled">
+                <div class="icon-circle metro">🚇</div>
+                <div class="icon-label">Метро</div>
+                <div class="icon-sublabel">Скоро</div>
+            </div>
         </div>
     </div>
     <div id="mapScreen" class="map-screen">
         <div class="map-header">
             <div class="header-top">
                 <button class="back-btn" onclick="goHome()">✕</button>
-                <div class="header-title"><h2><span>🚌</span> Автобусы Краснодара</h2><p>2 маршрутов</p></div>
+                <div class="header-title"><h2>🚌 Автобусы</h2><p id="cityMap">Краснодар • 2 маршрутов</p></div>
             </div>
-            <div class="search-box"><span class="search-icon">🔍</span><input type="text" id="searchInput" placeholder="Поиск маршрута (177, 7а...)" oninput="searchRoute(this.value)"></div>
+            <div class="search-box"><span class="search-icon">🔍</span><input id="searchInput" placeholder="Поиск (177, 7а)" oninput="searchRoute(this.value)"></div>
             <div id="routeInfo" class="route-info">
-                <div class="route-details"><div class="route-number" id="routeNumber"></div><div class="route-text"><h4 id="routeName"></h4><p id="routeStops"></p></div></div>
+                <div class="route-details"><div class="route-number" id="routeNumber"></div><div><h4 id="routeName"></h4><p id="routeStops"></p></div></div>
                 <button class="close-route" onclick="clearRoute()">✕</button>
             </div>
         </div>
@@ -112,9 +116,9 @@
     <div id="alertModal" class="modal">
         <div class="modal-content">
             <div class="modal-header"><h3>Напоминание</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
-            <div class="stop-info"><div class="stop-details"><div class="stop-route-number" id="modalRouteNumber"></div><div class="stop-text"><h4 id="modalStopName"></h4><p id="modalRouteName"></p></div></div></div>
-            <div class="form-group"><label>Текст напоминания (необязательно)</label><input type="text" id="alertText" placeholder="Например: Выйти на следующей!"></div>
-            <div class="form-group"><label>Звук оповещения</label>
+            <div class="stop-info"><div class="stop-details"><div class="stop-route-number" id="modalRouteNumber"></div><div><h4 id="modalStopName"></h4><p id="modalRouteName"></p></div></div></div>
+            <div class="form-group"><label>Текст напоминания</label><input id="alertText" placeholder="Выйти на следующей!"></div>
+            <div class="form-group"><label>Звук</label>
                 <div class="sound-options">
                     <div class="sound-option selected" onclick="selectSound('bell')"><div class="icon">🔔</div><div class="name">Колокольчик</div></div>
                     <div class="sound-option" onclick="selectSound('alarm')"><div class="icon">⏰</div><div class="name">Будильник</div></div>
@@ -122,67 +126,29 @@
                     <div class="sound-option" onclick="selectSound('beep')"><div class="icon">📢</div><div class="name">Сигнал</div></div>
                 </div>
             </div>
-            <button class="create-btn" onclick="createAlert()">🔔 Создать напоминание</button>
-            <p class="radius-note">Вы получите уведомление за 500 метров до остановки</p>
+            <button class="create-btn" onclick="createAlert()">🔔 Создать</button>
+            <p class="radius-note">Уведомление за 500м</p>
         </div>
     </div>
     <script>
-        let map, selectedStop, selectedRoute, selectedSound = 'bell', activeAlerts = [], userLocationMarker = null, watchId = null;
-        const routes = {bus: [
-            {id: 1, number: '177', name: 'МЕГА - Невкипелого', color: '#dc2626', stops: [
-                {id: 1, name: 'ТЦ МЕГА', coords: [45.0890, 38.9180]},
-                {id: 2, name: 'ул. Московская', coords: [45.0850, 38.9250]},
-                {id: 3, name: 'ул. Бургасская', coords: [45.0810, 38.9320]},
-                {id: 4, name: 'Нефтебаза', coords: [45.0780, 38.9380]},
-                {id: 5, name: 'Почта', coords: [45.0750, 38.9430]},
-                {id: 6, name: 'ул. Российская', coords: [45.0720, 38.9480]},
-                {id: 7, name: 'Рынок Столица', coords: [45.0690, 38.9530]},
-                {id: 8, name: 'ул. Атарбекова', coords: [45.0660, 38.9580]},
-                {id: 9, name: 'ТЭЦ', coords: [45.0630, 38.9620]},
-                {id: 10, name: 'Завод им. Седина', coords: [45.0600, 38.9670]},
-                {id: 11, name: 'ул. Гидростроителей', coords: [45.0570, 38.9720]},
-                {id: 12, name: 'Площадь Труда', coords: [45.0540, 38.9760]},
-                {id: 13, name: 'ул. Красная', coords: [45.0510, 38.9800]},
-                {id: 14, name: 'Театральная площадь', coords: [45.0480, 38.9840]},
-                {id: 15, name: 'ул. Мира', coords: [45.0450, 38.9880]},
-                {id: 16, name: 'Детская больница', coords: [45.0420, 38.9920]},
-                {id: 17, name: 'ул. Тургенева', coords: [45.0390, 38.9960]},
-                {id: 18, name: 'Парк Солнечный остров', coords: [45.0360, 39.0000]},
-                {id: 19, name: 'Стадион', coords: [45.0330, 39.0040]},
-                {id: 20, name: 'ул. Невкипелого', coords: [45.0300, 39.0080]}
-            ]},
-            {id: 2, number: '7А', name: 'МЕГА - аул Новая Адыгея', color: '#16a34a', stops: [
-                {id: 21, name: 'ТЦ МЕГА', coords: [45.0890, 38.9180]},
-                {id: 22, name: 'ул. Уральская', coords: [45.0920, 38.9220]},
-                {id: 23, name: 'Гипермаркет Магнит', coords: [45.0950, 38.9260]},
-                {id: 24, name: 'ул. Тихорецкая', coords: [45.0980, 38.9300]},
-                {id: 25, name: 'Пашковская', coords: [45.1010, 38.9340]},
-                {id: 26, name: 'ул. Передовая', coords: [45.1040, 38.9380]},
-                {id: 27, name: 'Школа №78', coords: [45.1070, 38.9420]},
-                {id: 28, name: 'Больница', coords: [45.1100, 38.9460]},
-                {id: 29, name: 'Кооперативный рынок', coords: [45.1130, 38.9500]},
-                {id: 30, name: 'ул. Промышленная', coords: [45.1160, 38.9540]},
-                {id: 31, name: 'ул. Заводская', coords: [45.1190, 38.9580]},
-                {id: 32, name: 'аул Новая Адыгея', coords: [45.1220, 38.9620]}
-            ]}
-        ]};
-        function selectTransport(t) {document.getElementById('homeScreen').style.display='none';document.getElementById('mapScreen').style.display='flex';initMap();}
-        function goHome() {document.getElementById('mapScreen').style.display='none';document.getElementById('homeScreen').style.display='flex';if(watchId)navigator.geolocation.clearWatch(watchId);}
-        function initMap() {ymaps.ready(function() {map=new ymaps.Map('map',{center:[45.0540,38.9760],zoom:12,controls:['zoomControl']});routes.bus.forEach(route=>{const poly=new ymaps.Polyline(route.stops.map(s=>s.coords),{},{strokeColor:route.color,strokeWidth:5,strokeOpacity:0.8});map.geoObjects.add(poly);route.stops.forEach(stop=>{const p=new ymaps.Placemark(stop.coords,{balloonContent:`<strong>${stop.name}</strong><br>Маршрут ${route.number}: ${route.name}`,hintContent:stop.name},{preset:'islands#blueCircleDotIcon',iconColor:route.color});p.events.add('click',()=>openAlertModal(stop,route));map.geoObjects.add(p);});});startTracking();});}
-        function startTracking() {if(navigator.geolocation){watchId=navigator.geolocation.watchPosition(pos=>{const c=[pos.coords.latitude,pos.coords.longitude];if(userLocationMarker)map.geoObjects.remove(userLocationMarker);userLocationMarker=new ymaps.Placemark(c,{balloonContent:'Вы здесь',hintContent:'Ваше местоположение'},{preset:'islands#redDotIcon',iconColor:'#3b82f6'});map.geoObjects.add(userLocationMarker);checkProximity(c);},e=>console.error(e),{enableHighAccuracy:true,timeout:5000,maximumAge:0});if(Notification.permission==='default')Notification.requestPermission();}}
-        function checkProximity(uc) {activeAlerts.forEach(a=>{if(!a.triggered&&getDistance(uc,a.stop.coords)<500)triggerAlert(a);});}
-        function getDistance(c1,c2) {const R=6371e3,p1=c1[0]*Math.PI/180,p2=c2[0]*Math.PI/180,dp=(c2[0]-c1[0])*Math.PI/180,dl=(c2[1]-c1[1])*Math.PI/180,a=Math.sin(dp/2)*Math.sin(dp/2)+Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)*Math.sin(dl/2);return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
-        function triggerAlert(a) {playSound(a.sound);if('vibrate' in navigator)navigator.vibrate([200,100,200,100,200]);if(Notification.permission==='granted')new Notification('🔔 BUS BELL - Остановка близко!',{body:a.text||`Остановка "${a.stop.name}" через 500 метров`,icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="75" font-size="75">🔔</text></svg>',vibrate:[200,100,200]});a.triggered=true;updateAlertsList();alert(`🔔 BUS BELL\n\nВНИМАНИЕ!\n${a.text||`Остановка "${a.stop.name}" через 500 метров!`}\n\nМаршрут ${a.route.number}`);}
-        function playSound(s) {const c=new(window.AudioContext||window.webkitAudioContext)(),f={bell:[800,600],alarm:[1000,800,1000],chime:[523,659,784],beep:[1200,1200]}[s];f.forEach((fr,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=fr;o.type='sine';g.gain.setValueAtTime(0.4,c.currentTime+i*0.3);g.gain.exponentialRampToValueAtTime(0.01,c.currentTime+i*0.3+0.5);o.start(c.currentTime+i*0.3);o.stop(c.currentTime+i*0.3+0.5);});}
-        function searchRoute(q) {if(!q){clearRoute();return;}const f=routes.bus.find(r=>r.number.toLowerCase().includes(q.toLowerCase())||r.name.toLowerCase().includes(q.toLowerCase()));if(f)showRoute(f);else clearRoute();}
-        function showRoute(r) {document.getElementById('routeInfo').classList.add('show');document.getElementById('routeNumber').style.backgroundColor=r.color;document.getElementById('routeNumber').textContent=r.number;document.getElementById('routeName').textContent=r.name;document.getElementById('routeStops').textContent=`${r.stops.length} остановок`;map.setBounds(r.stops.map(s=>s.coords),{checkZoomRange:true,zoomMargin:50});}
-        function clearRoute() {document.getElementById('routeInfo').classList.remove('show');document.getElementById('searchInput').value='';}
-        function openAlertModal(s,r) {selectedStop=s;selectedRoute=r;document.getElementById('modalRouteNumber').style.backgroundColor=r.color;document.getElementById('modalRouteNumber').textContent=r.number;document.getElementById('modalStopName').textContent=s.name;document.getElementById('modalRouteName').textContent=`Маршрут ${r.number}: ${r.name}`;document.getElementById('alertText').value='';document.getElementById('alertModal').classList.add('show');}
-        function closeModal() {document.getElementById('alertModal').classList.remove('show');}
-        function selectSound(s) {selectedSound=s;document.querySelectorAll('.sound-option').forEach(e=>e.classList.remove('selected'));event.target.closest('.sound-option').classList.add('selected');}
-        function createAlert() {const t=document.getElementById('alertText').value,a={id:Date.now(),stop:selectedStop,route:selectedRoute,text:t,sound:selectedSound,triggered:false};activeAlerts.push(a);updateAlertsList();closeModal();alert(`✅ Напоминание создано!\n\nОстановка: ${selectedStop.name}\nМаршрут ${selectedRoute.number}\n\nВы получите уведомление за 500 метров до остановки.`);}
-        function updateAlertsList() {const c=document.getElementById('alertsContainer'),l=document.getElementById('alertsList'),n=document.getElementById('alertsCount');if(activeAlerts.length===0){l.style.display='none';return;}l.style.display='block';n.textContent=activeAlerts.filter(a=>!a.triggered).length;c.innerHTML=activeAlerts.map(a=>`<div class="alert-item" style="${a.triggered?'opacity:0.5;':''}"><div class="alert-info"><h4>${a.stop.name}</h4><p>Маршрут ${a.route.number}: ${a.route.name}</p></div><button class="delete-alert" onclick="deleteAlert(${a.id})">✕</button></div>`).join('');}
-        function deleteAlert(i) {activeAlerts=activeAlerts.filter(a=>a.id!==i);updateAlertsList();}
+let map,selectedStop,selectedRoute,selectedSound='bell',activeAlerts=[],userLocationMarker=null,watchId=null,userCity='Краснодар';
+const routes={bus:[{id:1,number:'177',name:'МЕГА - Невкипелого',color:'#dc2626',stops:[{id:1,name:'ТЦ МЕГА',coords:[45.089,38.918]},{id:2,name:'ул. Московская',coords:[45.085,38.925]},{id:3,name:'ул. Бургасская',coords:[45.081,38.932]},{id:4,name:'Нефтебаза',coords:[45.078,38.938]},{id:5,name:'Почта',coords:[45.075,38.943]},{id:6,name:'ул. Российская',coords:[45.072,38.948]},{id:7,name:'Рынок Столица',coords:[45.069,38.953]},{id:8,name:'ул. Атарбекова',coords:[45.066,38.958]},{id:9,name:'ТЭЦ',coords:[45.063,38.962]},{id:10,name:'Завод им. Седина',coords:[45.06,38.967]},{id:11,name:'ул. Гидростроителей',coords:[45.057,38.972]},{id:12,name:'Площадь Труда',coords:[45.054,38.976]},{id:13,name:'ул. Красная',coords:[45.051,38.98]},{id:14,name:'Театральная площадь',coords:[45.048,38.984]},{id:15,name:'ул. Мира',coords:[45.045,38.988]},{id:16,name:'Детская больница',coords:[45.042,38.992]},{id:17,name:'ул. Тургенева',coords:[45.039,38.996]},{id:18,name:'Парк Солнечный остров',coords:[45.036,39]},{id:19,name:'Стадион',coords:[45.033,39.004]},{id:20,name:'ул. Невкипелого',coords:[45.03,39.008]}]},{id:2,number:'7А',name:'МЕГА - аул Новая Адыгея',color:'#16a34a',stops:[{id:21,name:'ТЦ МЕГА',coords:[45.089,38.918]},{id:22,name:'ул. Уральская',coords:[45.092,38.922]},{id:23,name:'Гипермаркет Магнит',coords:[45.095,38.926]},{id:24,name:'ул. Тихорецкая',coords:[45.098,38.93]},{id:25,name:'Пашковская',coords:[45.101,38.934]},{id:26,name:'ул. Передовая',coords:[45.104,38.938]},{id:27,name:'Школа №78',coords:[45.107,38.942]},{id:28,name:'Больница',coords:[45.11,38.946]},{id:29,name:'Кооперативный рынок',coords:[45.113,38.95]},{id:30,name:'ул. Промышленная',coords:[45.116,38.954]},{id:31,name:'ул. Заводская',coords:[45.119,38.958]},{id:32,name:'аул Новая Адыгея',coords:[45.122,38.962]}]}]};
+
+window.onload=function(){if(navigator.geolocation){navigator.geolocation.getCurrentPosition(pos=>{const c=[pos.coords.latitude,pos.coords.longitude];ymaps.ready(()=>{ymaps.geocode(c).then(res=>{const city=res.geoObjects.get(0).getLocalities()[0]||res.geoObjects.get(0).getAdministrativeAreas()[0]||'Краснодар';userCity=city;document.getElementById('cityName').textContent=`Вы находитесь в городе ${city}`;document.getElementById('cityMap').textContent=`${city} • 2 маршрутов`;document.getElementById('locationInfo').classList.add('show');});});},()=>{document.getElementById('cityName').textContent='Вы находитесь в городе Краснодар';document.getElementById('locationInfo').classList.add('show');});}else{document.getElementById('cityName').textContent='Вы находитесь в городе Краснодар';document.getElementById('locationInfo').classList.add('show');}};
+
+function selectTransport(){document.getElementById('homeScreen').style.display='none';document.getElementById('mapScreen').style.display='flex';initMap();}
+function goHome(){document.getElementById('mapScreen').style.display='none';document.getElementById('homeScreen').style.display='flex';if(watchId)navigator.geolocation.clearWatch(watchId);}
+function initMap(){ymaps.ready(()=>{map=new ymaps.Map('map',{center:[45.054,38.976],zoom:12,controls:['zoomControl']});routes.bus.forEach(route=>{const poly=new ymaps.Polyline(route.stops.map(s=>s.coords),{},{strokeColor:route.color,strokeWidth:5,strokeOpacity:0.8});map.geoObjects.add(poly);route.stops.forEach(stop=>{const p=new ymaps.Placemark(stop.coords,{balloonContent:`<strong>${stop.name}</strong><br>Маршрут ${route.number}`,hintContent:stop.name},{preset:'islands#blueCircleDotIcon',iconColor:route.color});p.events.add('click',()=>openAlertModal(stop,route));map.geoObjects.add(p);});});startTracking();});}
+function startTracking(){if(navigator.geolocation){watchId=navigator.geolocation.watchPosition(pos=>{const c=[pos.coords.latitude,pos.coords.longitude];if(userLocationMarker)map.geoObjects.remove(userLocationMarker);userLocationMarker=new ymaps.Placemark(c,{balloonContent:'Вы здесь'},{preset:'islands#redDotIcon',iconColor:'#3b82f6'});map.geoObjects.add(userLocationMarker);activeAlerts.forEach(a=>{if(!a.triggered){const R=6371e3,p1=c[0]*Math.PI/180,p2=a.stop.coords[0]*Math.PI/180,dp=(a.stop.coords[0]-c[0])*Math.PI/180,dl=(a.stop.coords[1]-c[1])*Math.PI/180,aa=Math.sin(dp/2)*Math.sin(dp/2)+Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)*Math.sin(dl/2),d=R*2*Math.atan2(Math.sqrt(aa),Math.sqrt(1-aa));if(d<500){playSound(a.sound);if('vibrate'in navigator)navigator.vibrate([200,100,200]);if(Notification.permission==='granted')new Notification('🔔 BUS BELL',{body:a.text||`Остановка "${a.stop.name}" через 500м`});a.triggered=true;alert(`🔔 BUS BELL\n\n${a.text||`Остановка "${a.stop.name}" через 500м!`}`);}
+
+}});},e=>console.error(e),{enableHighAccuracy:true});if(Notification.permission==='default')Notification.requestPermission();}}
+function playSound(s){const ctx=new(window.AudioContext||window.webkitAudioContext)(),f={bell:[800,600],alarm:[1000,800,1000],chime:[523,659,784],beep:[1200,1200]}[s];f.forEach((fr,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=fr;o.type='sine';g.gain.setValueAtTime(0.4,ctx.currentTime+i*0.3);g.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+i*0.3+0.5);o.start(ctx.currentTime+i*0.3);o.stop(ctx.currentTime+i*0.3+0.5);});}
+function searchRoute(q){if(!q){clearRoute();return;}const f=routes.bus.find(r=>r.number.toLowerCase().includes(q.toLowerCase()));if(f){document.getElementById('routeInfo').classList.add('show');document.getElementById('routeNumber').style.backgroundColor=f.color;document.getElementById('routeNumber').textContent=f.number;document.getElementById('routeName').textContent=f.name;document.getElementById('routeStops').textContent=`${f.stops.length} остановок`;map.setBounds(f.stops.map(s=>s.coords),{checkZoomRange:true,zoomMargin:50});}else clearRoute();}
+function clearRoute(){document.getElementById('routeInfo').classList.remove('show');document.getElementById('searchInput').value='';}
+function openAlertModal(s,r){selectedStop=s;selectedRoute=r;document.getElementById('modalRouteNumber').style.backgroundColor=r.color;document.getElementById('modalRouteNumber').textContent=r.number;document.getElementById('modalStopName').textContent=s.name;document.getElementById('modalRouteName').textContent=`Маршрут ${r.number}: ${r.name}`;document.getElementById('alertText').value='';document.getElementById('alertModal').classList.add('show');}
+function closeModal(){document.getElementById('alertModal').classList.remove('show');}
+function selectSound(s){selectedSound=s;document.querySelectorAll('.sound-option').forEach(e=>e.classList.remove('selected'));event.target.closest('.sound-option').classList.add('selected');}
+function createAlert(){const t=document.getElementById('alertText').value;activeAlerts.push({id:Date.now(),stop:selectedStop,route:selectedRoute,text:t,sound:selectedSound,triggered:false});closeModal();alert(`✅ Напоминание создано!\n\nОстановка: ${selectedStop.name}\nМаршрут ${selectedRoute.number}`);}
     </script>
 </body>
 </html>
