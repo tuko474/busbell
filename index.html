@@ -4,147 +4,703 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BUS BELL - Не проспи свою остановку</title>
-    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Leaflet карта -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #667eea;
+            --primary-dark: #5568d3;
+            --secondary-color: #764ba2;
+            --success-color: #4CAF50;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            min-height: 100vh;
+        }
+
+        .app-container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+        }
+
+        .app-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 30px 20px 20px;
+            text-align: center;
+        }
+
+        .logo-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 15px;
+            line-height: 60px;
+            font-size: 24px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .app-header h1 {
+            font-size: 28px;
+            margin: 10px 0 5px;
+        }
+
+        .location-status {
+            margin-top: 15px;
+            padding: 10px 15px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .transport-tabs {
+            display: flex;
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px 10px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn.active {
+            border-bottom-color: var(--primary-color);
+        }
+
+        .tab-icon {
+            display: block;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .tab-label {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .tab-count {
+            background: var(--primary-color);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            margin-left: 5px;
+        }
+
+        .content-header {
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .search-box {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-box input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 16px;
+        }
+
+        .routes-list {
+            max-height: calc(100vh - 400px);
+            overflow-y: auto;
+        }
+
+        .route-card {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .route-card:active {
+            background: #f8f9ff;
+        }
+
+        .route-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-right: 10px;
+        }
+
+        .route-name {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .route-stops {
+            font-size: 12px;
+            color: #999;
+            margin-top: 3px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1000;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .modal.active {
+            display: block;
+        }
+
+        .modal-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 20px 20px 0 0;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+        }
+
+        .modal-tabs {
+            display: flex;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .modal-tab {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+
+        .modal-tab.active {
+            border-bottom-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .modal-body {
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        #map {
+            height: 400px;
+            width: 100%;
+        }
+
+        .stops-list {
+            padding: 10px;
+        }
+
+        .stop-item {
+            padding: 15px;
+            background: #f8f9ff;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            position: relative;
+            padding-left: 60px;
+        }
+
+        .stop-item:active {
+            background: #e8f0ff;
+        }
+
+        .stop-number {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 35px;
+            height: 35px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .stop-name {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .stop-coords {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .stop-distance {
+            font-size: 12px;
+            color: var(--success-color);
+            margin-top: 3px;
+        }
+
+        .btn-primary {
+            width: calc(100% - 40px);
+            margin: 20px;
+            padding: 15px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e0e0e0;
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #333;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            z-index: 2000;
+            transition: transform 0.3s;
+            max-width: 90%;
+        }
+
+        .notification.show {
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
 </head>
 <body>
     <div class="app-container">
-        <!-- Шапка приложения -->
         <header class="app-header">
-            <div class="logo">
-                <span class="logo-icon">BB</span>
-            </div>
+            <div class="logo-icon">BB</div>
             <h1>🔔 BUS BELL</h1>
-            <p class="tagline">Не проспи свою остановку</p>
-            
-            <div class="location-status" id="locationStatus">
-                <span class="location-icon">📍</span>
-                <span id="locationText">Определяем местоположение...</span>
+            <p>Не проспи свою остановку</p>
+            <div class="location-status">
+                📍 <span id="locationText">Краснодар</span>
             </div>
         </header>
 
-        <!-- Табы транспорта -->
         <nav class="transport-tabs">
-            <button class="tab-btn active" data-tab="buses">
+            <button class="tab-btn active">
                 <span class="tab-icon">🚌</span>
                 <span class="tab-label">Автобусы</span>
-                <span class="tab-count" id="busCount">0</span>
+                <span class="tab-count" id="busCount">4</span>
             </button>
-            <button class="tab-btn" data-tab="trains" disabled>
+            <button class="tab-btn" disabled>
                 <span class="tab-icon">🚆</span>
-                <span class="tab-label">Электрички</span>
-                <span class="tab-badge">Скоро</span>
+                <span class="tab-label">Скоро</span>
             </button>
-            <button class="tab-btn" data-tab="metro" disabled>
+            <button class="tab-btn" disabled>
                 <span class="tab-icon">🚇</span>
-                <span class="tab-label">Метро</span>
-                <span class="tab-badge">Скоро</span>
+                <span class="tab-label">Скоро</span>
             </button>
         </nav>
 
-        <!-- Контент автобусов -->
-        <div class="tab-content active" id="busesContent">
-            <div class="content-header">
-                <h2>🚌 Автобусы</h2>
-                <p class="city-name" id="cityName">Загрузка...</p>
-            </div>
-
-            <!-- Поиск маршрута -->
-            <div class="search-box">
-                <span class="search-icon">🔍</span>
-                <input 
-                    type="text" 
-                    id="routeSearch" 
-                    placeholder="Поиск маршрута..."
-                    autocomplete="off"
-                >
-                <button class="clear-search" id="clearSearch" style="display: none;">✕</button>
-            </div>
-
-            <!-- Список маршрутов -->
-            <div class="routes-list" id="routesList">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p>Загружаем маршруты...</p>
-                </div>
-            </div>
+        <div class="content-header">
+            <h2>🚌 Автобусы</h2>
+            <p id="cityName">Краснодар • 4 маршрута</p>
         </div>
+
+        <div class="search-box">
+            <span>🔍</span>
+            <input type="text" id="routeSearch" placeholder="Поиск маршрута..." autocomplete="off">
+        </div>
+
+        <div class="routes-list" id="routesList"></div>
     </div>
 
-    <!-- Модальное окно остановок -->
-    <div class="modal" id="stopsModal">
-        <div class="modal-overlay" onclick="closeStopsModal()"></div>
+    <div class="modal" id="stopsModal" onclick="if(event.target === this) closeModal()">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="modalRouteTitle">Маршрут</h3>
-                <button class="modal-close" onclick="closeStopsModal()">✕</button>
+                <h3 id="modalTitle">Маршрут</h3>
+                <button class="modal-close" onclick="closeModal()">×</button>
             </div>
-            <div class="modal-body" id="modalStopsBody">
-                <!-- Остановки -->
+            
+            <div class="modal-tabs">
+                <button class="modal-tab active" onclick="switchTab('map')">🗺️ Карта</button>
+                <button class="modal-tab" onclick="switchTab('list')">📋 Список</button>
             </div>
-        </div>
-    </div>
-
-    <!-- Модальное окно создания напоминания -->
-    <div class="modal" id="reminderModal">
-        <div class="modal-overlay" onclick="closeReminderModal()"></div>
-        <div class="modal-content reminder-modal">
-            <div class="modal-header">
-                <h3>Напоминание</h3>
-                <button class="modal-close" onclick="closeReminderModal()">✕</button>
-            </div>
+            
             <div class="modal-body">
-                <div class="reminder-form">
-                    <label>Остановка:</label>
-                    <div class="stop-info" id="reminderStopInfo"></div>
-
-                    <label for="reminderText">Текст напоминания</label>
-                    <input 
-                        type="text" 
-                        id="reminderText" 
-                        placeholder="Выйти на следующей"
-                    >
-
-                    <label for="reminderDistance">Уведомление за</label>
-                    <select id="reminderDistance">
-                        <option value="500">500 метров</option>
-                        <option value="300">300 метров</option>
-                        <option value="700">700 метров</option>
-                        <option value="1000">1 километр</option>
-                    </select>
-
-                    <label for="reminderSound">Звук</label>
-                    <div class="sound-options">
-                        <label class="sound-option">
-                            <input type="radio" name="sound" value="bell" checked>
-                            <span>🔔 Колокольчик</span>
-                        </label>
-                        <label class="sound-option">
-                            <input type="radio" name="sound" value="alarm">
-                            <span>⏰ Будильник</span>
-                        </label>
-                        <label class="sound-option">
-                            <input type="radio" name="sound" value="ring">
-                            <span>🎵 Звонок</span>
-                        </label>
-                        <label class="sound-option">
-                            <input type="radio" name="sound" value="signal">
-                            <span>📢 Сигнал</span>
-                        </label>
-                    </div>
-
-                    <button class="btn-primary" onclick="createReminder()">
-                        🔔 Создать напоминание
-                    </button>
+                <div id="mapView">
+                    <div id="map"></div>
                 </div>
+                <div id="listView" class="stops-list" style="display: none;"></div>
             </div>
         </div>
     </div>
 
-    <!-- Уведомление -->
     <div class="notification" id="notification"></div>
 
-    <!-- Скрипты -->
-    <script src="transport-api.js"></script>
-    <script src="app.js"></script>
+    <script>
+        // Полные данные маршрутов Краснодара
+        const fullRoutes = {
+            '177': {
+                routeNumber: '177',
+                routeName: 'Мкр. Юбилейный - Памятник Екатерине II',
+                stops: [
+                    { name: 'Мкр. Юбилейный', lat: 45.1089, lon: 39.0156 },
+                    { name: 'Ул. Тихорецкая', lat: 45.1075, lon: 39.0145 },
+                    { name: 'Ул. Уральская', lat: 45.1055, lon: 39.0125 },
+                    { name: 'Ул. Российская', lat: 45.0995, lon: 39.0085 },
+                    { name: 'Автовокзал Краснодар-1', lat: 45.0895, lon: 38.9995 },
+                    { name: 'ТЦ "ОЗ Молл"', lat: 45.0795, lon: 38.9905 },
+                    { name: 'Ул. Ставропольская', lat: 45.0695, lon: 38.9815 },
+                    { name: 'Ул. Красных Партизан', lat: 45.0595, lon: 38.9785 },
+                    { name: 'Стадион "Кубань"', lat: 45.0395, lon: 38.9753 },
+                    { name: 'Ул. Красная / Мира', lat: 45.0375, lon: 38.9743 },
+                    { name: 'Ул. Красная / Гимназическая', lat: 45.0355, lon: 38.9733 },
+                    { name: 'Театральная площадь', lat: 45.0365, lon: 38.9723 },
+                    { name: 'Площадь Октябрьской Революции', lat: 45.0370, lon: 38.9718 },
+                    { name: 'Памятник Екатерине II', lat: 45.0375, lon: 38.9713 }
+                ]
+            },
+            '7А': {
+                routeNumber: '7А',
+                routeName: 'пос. Пашковский - Площадь Победы',
+                stops: [
+                    { name: 'пос. Пашковский', lat: 45.0567, lon: 39.1234 },
+                    { name: 'Ул. Автомобильная', lat: 45.0555, lon: 39.1123 },
+                    { name: 'Мкр. Гидростроителей', lat: 45.0523, lon: 39.0956 },
+                    { name: 'Ул. Тургенева', lat: 45.0489, lon: 39.0812 },
+                    { name: 'Парк "Солнечный остров"', lat: 45.0467, lon: 39.0567 },
+                    { name: 'ТРЦ "Галерея Краснодар"', lat: 45.0456, lon: 39.0234 },
+                    { name: 'ТЦ "Красная площадь"', lat: 45.0445, lon: 38.9953 },
+                    { name: 'Ул. Красная', lat: 45.0395, lon: 38.9823 },
+                    { name: 'Театральная площадь', lat: 45.0365, lon: 38.9723 },
+                    { name: 'Ул. Красная / Комсомольская', lat: 45.0335, lon: 38.9683 },
+                    { name: 'Ул. Красная / Буденного', lat: 45.0305, lon: 38.9643 },
+                    { name: 'Площадь Победы', lat: 45.0275, lon: 38.9613 }
+                ]
+            },
+            '444': {
+                routeNumber: '444',
+                routeName: 'ЖК Панорама - Фестивальный мкр.',
+                stops: [
+                    { name: 'ЖК Панорама', lat: 45.0455, lon: 38.9853 },
+                    { name: 'Ул. Дзержинского', lat: 45.0465, lon: 38.9863 },
+                    { name: 'Ул. Красина', lat: 45.0455, lon: 38.9843 },
+                    { name: 'Ул. Октябрьская', lat: 45.0435, lon: 38.9803 },
+                    { name: 'Стадион "Краснодар"', lat: 45.0415, lon: 38.9773 },
+                    { name: 'Парк Галицкого', lat: 45.0395, lon: 38.9753 },
+                    { name: 'Ул. Красная', lat: 45.0375, lon: 38.9733 },
+                    { name: 'ТРК "Oz Mall"', lat: 45.0425, lon: 38.9823 },
+                    { name: 'Мкр. Гидростроителей', lat: 45.0455, lon: 38.9893 },
+                    { name: 'Фестивальный мкр.', lat: 45.0475, lon: 38.9873 }
+                ]
+            },
+            '3': {
+                routeNumber: '3',
+                routeName: 'Пос. Индустриальный - ЖД вокзал',
+                stops: [
+                    { name: 'Пос. Индустриальный', lat: 45.0289, lon: 39.0556 },
+                    { name: 'Ул. Дальняя', lat: 45.0299, lon: 39.0456 },
+                    { name: 'Ул. Воронежская', lat: 45.0309, lon: 39.0356 },
+                    { name: 'ТЦ "Красная площадь"', lat: 45.0329, lon: 39.0156 },
+                    { name: 'Ул. Красная / Мира', lat: 45.0345, lon: 38.9933 },
+                    { name: 'Ул. Красная', lat: 45.0355, lon: 38.9733 },
+                    { name: 'Театральная площадь', lat: 45.0375, lon: 38.9633 },
+                    { name: 'Ул. Гоголя', lat: 45.0385, lon: 38.9633 },
+                    { name: 'Привокзальная площадь', lat: 45.0395, lon: 38.9623 },
+                    { name: 'ЖД вокзал Краснодар-1', lat: 45.0400, lon: 38.9600 }
+                ]
+            }
+        };
+
+        let allRoutes = Object.values(fullRoutes);
+        let selectedRoute = null;
+        let map = null;
+        let userPosition = null;
+
+        // Отобразить маршруты
+        function displayRoutes(routes) {
+            const list = document.getElementById('routesList');
+            list.innerHTML = '';
+            
+            routes.forEach(route => {
+                const card = document.createElement('div');
+                card.className = 'route-card';
+                card.onclick = () => showStops(route);
+                card.innerHTML = `
+                    <div>
+                        <div><span class="route-number">${route.routeNumber}</span></div>
+                        <div class="route-name">${route.routeName}</div>
+                        <div class="route-stops">Остановок: ${route.stops.length}</div>
+                    </div>
+                    <div style="font-size: 20px; color: #999;">›</div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        // Показать остановки
+        function showStops(route) {
+            selectedRoute = route;
+            document.getElementById('modalTitle').textContent = `Маршрут ${route.routeNumber}`;
+            document.getElementById('stopsModal').classList.add('active');
+            
+            // Показываем карту
+            switchTab('map');
+            initMap(route);
+            renderStopsList(route);
+        }
+
+        // Инициализация карты
+        function initMap(route) {
+            const mapDiv = document.getElementById('map');
+            
+            if (map) {
+                map.remove();
+            }
+            
+            // Создаем карту
+            map = L.map('map').setView([route.stops[0].lat, route.stops[0].lon], 13);
+            
+            // Добавляем слой OpenStreetMap
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+            
+            // Добавляем маркеры остановок
+            route.stops.forEach((stop, index) => {
+                const isFirst = index === 0;
+                const isLast = index === route.stops.length - 1;
+                
+                let icon = L.divIcon({
+                    html: `<div style="
+                        background: ${isFirst ? '#4CAF50' : isLast ? '#f44336' : '#667eea'};
+                        color: white;
+                        width: 30px;
+                        height: 30px;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-weight: bold;
+                        border: 3px solid white;
+                        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+                    ">${index + 1}</div>`,
+                    className: '',
+                    iconSize: [30, 30]
+                });
+                
+                L.marker([stop.lat, stop.lon], { icon: icon })
+                    .addTo(map)
+                    .bindPopup(`<strong>${stop.name}</strong><br>Остановка ${index + 1}`);
+            });
+            
+            // Рисуем линию маршрута
+            const latlngs = route.stops.map(s => [s.lat, s.lon]);
+            L.polyline(latlngs, {
+                color: '#667eea',
+                weight: 4,
+                opacity: 0.7
+            }).addTo(map);
+            
+            // Подгоняем границы карты
+            const bounds = L.latLngBounds(latlngs);
+            map.fitBounds(bounds, { padding: [50, 50] });
+        }
+
+        // Отобразить список остановок
+        function renderStopsList(route) {
+            const listView = document.getElementById('listView');
+            listView.innerHTML = '';
+            
+            route.stops.forEach((stop, index) => {
+                const item = document.createElement('div');
+                item.className = 'stop-item';
+                item.onclick = () => selectStop(index);
+                
+                let distanceHtml = '';
+                if (userPosition) {
+                    const dist = calculateDistance(
+                        userPosition.latitude, userPosition.longitude,
+                        stop.lat, stop.lon
+                    );
+                    distanceHtml = `<div class="stop-distance">📍 ${Math.round(dist * 1000)} м от вас</div>`;
+                }
+                
+                item.innerHTML = `
+                    <div class="stop-number">${index + 1}</div>
+                    <div class="stop-name">${stop.name}</div>
+                    <div class="stop-coords">${stop.lat.toFixed(6)}, ${stop.lon.toFixed(6)}</div>
+                    ${distanceHtml}
+                `;
+                listView.appendChild(item);
+            });
+        }
+
+        // Переключить вкладку
+        function switchTab(tab) {
+            const tabs = document.querySelectorAll('.modal-tab');
+            tabs.forEach(t => t.classList.remove('active'));
+            
+            if (tab === 'map') {
+                tabs[0].classList.add('active');
+                document.getElementById('mapView').style.display = 'block';
+                document.getElementById('listView').style.display = 'none';
+                if (map) map.invalidateSize();
+            } else {
+                tabs[1].classList.add('active');
+                document.getElementById('mapView').style.display = 'none';
+                document.getElementById('listView').style.display = 'block';
+            }
+        }
+
+        // Выбрать остановку
+        function selectStop(index) {
+            const stop = selectedRoute.stops[index];
+            closeModal();
+            showNotification(`✅ Напоминание создано для остановки "${stop.name}"`);
+            
+            // Запуск геолокации
+            if ('geolocation' in navigator) {
+                navigator.geolocation.watchPosition(pos => {
+                    const dist = calculateDistance(
+                        pos.coords.latitude, pos.coords.longitude,
+                        stop.lat, stop.lon
+                    );
+                    console.log(`📏 Расстояние до "${stop.name}": ${Math.round(dist * 1000)}м`);
+                    
+                    if (dist * 1000 <= 500) {
+                        showNotification(`🔔 Скоро остановка "${stop.name}"!`);
+                        if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
+                        
+                        // Показываем системное уведомление
+                        if ('Notification' in window && Notification.permission === 'granted') {
+                            new Notification('BUS BELL', {
+                                body: `Скоро остановка "${stop.name}"!`,
+                                icon: '🔔',
+                                vibrate: [200, 100, 200]
+                            });
+                        }
+                    }
+                });
+            }
+        }
+
+        // Закрыть модал
+        function closeModal() {
+            document.getElementById('stopsModal').classList.remove('active');
+            if (map) {
+                map.remove();
+                map = null;
+            }
+        }
+
+        // Уведомление
+        function showNotification(text) {
+            const notif = document.getElementById('notification');
+            notif.textContent = text;
+            notif.classList.add('show');
+            setTimeout(() => notif.classList.remove('show'), 3000);
+        }
+
+        // Расстояние
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            return 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)) * R;
+        }
+
+        // Поиск
+        document.getElementById('routeSearch').addEventListener('input', e => {
+            const query = e.target.value.toLowerCase();
+            const filtered = allRoutes.filter(r => 
+                r.routeNumber.toLowerCase().includes(query) ||
+                r.routeName.toLowerCase().includes(query)
+            );
+            displayRoutes(filtered);
+        });
+
+        // Запрос разрешения на уведомления
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+
+        // Получение геопозиции
+        if ('geolocation' in navigator) {
+            navigator.geolocation.getCurrentPosition(pos => {
+                userPosition = pos.coords;
+                console.log('📍 Позиция получена:', pos.coords.latitude, pos.coords.longitude);
+            });
+        }
+
+        // Запуск
+        displayRoutes(allRoutes);
+        console.log('🚀 BUS BELL запущен');
+        console.log('📊 Загружено маршрутов:', allRoutes.length);
+        allRoutes.forEach(r => console.log(`  ${r.routeNumber}: ${r.stops.length} остановок`));
+    </script>
 </body>
 </html>
