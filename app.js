@@ -87,8 +87,25 @@ function getCurrentPosition() {
 async function loadRoutes(city) {
     const routesList = document.getElementById('routesList');
     
+    // Для Краснодара сразу используем демо-данные
+    if (city === 'Краснодар') {
+        console.log('📊 Загружаем демо-данные для Краснодара');
+        routesList.innerHTML = `
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Загружаем демо-маршруты...</p>
+            </div>
+        `;
+        
+        // Небольшая задержка для эффекта загрузки
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        loadDemoData();
+        return;
+    }
+    
+    // Для других городов пробуем API
     try {
-        // Показываем загрузку
         routesList.innerHTML = `
             <div class="loading">
                 <div class="spinner"></div>
@@ -96,7 +113,6 @@ async function loadRoutes(city) {
             </div>
         `;
         
-        // Получаем маршруты из API
         const routes = await window.transportAPI.getRoutes(city);
         
         console.log(`📊 Получено маршрутов: ${routes.length}`);
@@ -104,11 +120,9 @@ async function loadRoutes(city) {
         AppState.allRoutes = routes;
         AppState.filteredRoutes = routes;
         
-        // Обновляем UI
         updateCityName(`${city} • ${routes.length} маршрутов`);
         document.getElementById('busCount').textContent = routes.length;
         
-        // Отображаем маршруты
         displayRoutes(routes);
         
     } catch (error) {
@@ -117,8 +131,23 @@ async function loadRoutes(city) {
             <div class="empty-state">
                 <div class="empty-state-icon">😔</div>
                 <p>Не удалось загрузить маршруты</p>
-                <p style="font-size: 12px; margin-top: 10px;">
-                    Попробуйте выбрать другой город или повторите попытку позже
+                <p style="font-size: 14px; margin-top: 10px; color: #999;">
+                    OpenStreetMap API временно недоступен
+                </p>
+                <button onclick="loadRoutes('${city}')" style="
+                    margin-top: 20px;
+                    padding: 12px 30px;
+                    background: var(--primary-color);
+                    color: white;
+                    border: none;
+                    border-radius: 10px;
+                    cursor: pointer;
+                    font-size: 16px;
+                ">
+                    🔄 Повторить попытку
+                </button>
+                <p style="font-size: 12px; margin-top: 15px; color: #999;">
+                    Выберите "Краснодар" для демо-версии с тестовыми маршрутами
                 </p>
             </div>
         `;
@@ -498,6 +527,81 @@ function showCitySelector() {
             await loadRoutes(city);
         }
     });
+}
+
+/**
+ * Загрузить демо-данные (для тестирования)
+ */
+function loadDemoData() {
+    console.log('📊 Загружаем демо-данные Краснодара');
+    
+    const demoRoutes = [
+        {
+            routeNumber: '177',
+            routeName: 'Мкр. Юбилейный - Памятник Екатерине II',
+            routeType: 'bus',
+            operator: 'МУП КТТУ',
+            stops: [
+                { name: 'Мкр. Юбилейный', lat: 45.1089, lon: 39.0156 },
+                { name: 'Ул. Тихорецкая', lat: 45.1075, lon: 39.0145 },
+                { name: 'Ул. Уральская', lat: 45.1055, lon: 39.0125 },
+                { name: 'Стадион "Кубань"', lat: 45.0395, lon: 38.9753 },
+                { name: 'Ул. Красная', lat: 45.0355, lon: 38.9733 },
+                { name: 'Театральная площадь', lat: 45.0365, lon: 38.9723 },
+                { name: 'Памятник Екатерине II', lat: 45.0375, lon: 38.9713 }
+            ],
+            source: 'demo'
+        },
+        {
+            routeNumber: '7А',
+            routeName: 'пос. Пашковский - Площадь Победы',
+            routeType: 'bus',
+            operator: 'МУП КТТУ',
+            stops: [
+                { name: 'пос. Пашковский', lat: 45.0567, lon: 39.1234 },
+                { name: 'Ул. Автомобильная', lat: 45.0555, lon: 39.1123 },
+                { name: 'ТЦ "Красная площадь"', lat: 45.0445, lon: 38.9953 },
+                { name: 'Театральная площадь', lat: 45.0365, lon: 38.9723 },
+                { name: 'Площадь Победы', lat: 45.0275, lon: 38.9613 }
+            ],
+            source: 'demo'
+        },
+        {
+            routeNumber: '444',
+            routeName: 'ЖК Панорама - Фестивальный мкр.',
+            routeType: 'bus',
+            operator: 'МУП КТТУ',
+            stops: [
+                { name: 'ЖК Панорама', lat: 45.0455, lon: 38.9853 },
+                { name: 'Ул. Дзержинского', lat: 45.0465, lon: 38.9863 },
+                { name: 'Парк Галицкого', lat: 45.0395, lon: 38.9753 },
+                { name: 'Фестивальный мкр.', lat: 45.0475, lon: 38.9873 }
+            ],
+            source: 'demo'
+        },
+        {
+            routeNumber: '3',
+            routeName: 'Пос. Индустриальный - ЖД вокзал',
+            routeType: 'bus',
+            stops: [
+                { name: 'Пос. Индустриальный', lat: 45.0289, lon: 39.0556 },
+                { name: 'Ул. Красная', lat: 45.0355, lon: 38.9733 },
+                { name: 'ЖД вокзал', lat: 45.0400, lon: 38.9600 }
+            ],
+            source: 'demo'
+        }
+    ];
+    
+    AppState.allRoutes = demoRoutes;
+    AppState.filteredRoutes = demoRoutes;
+    
+    updateCityName(`Краснодар • ${demoRoutes.length} маршрутов (демо)`);
+    document.getElementById('busCount').textContent = demoRoutes.length;
+    
+    displayRoutes(demoRoutes);
+    
+    // Показываем уведомление
+    showNotification('⚠️ Демо-режим: Отображаются тестовые маршруты', 'warning');
 }
 
 /**
