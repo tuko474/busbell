@@ -124,17 +124,26 @@ class TransportAPI {
         }
 
         try {
-            const response = await fetch('https://overpass-api.de/api/interpreter', {
+            // Используем CORS прокси для обхода ограничений
+            const proxyUrl = 'https://corsproxy.io/?';
+            const apiUrl = 'https://overpass-api.de/api/interpreter';
+            
+            const response = await fetch(proxyUrl + encodeURIComponent(apiUrl), {
                 method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
                 body: 'data=' + encodeURIComponent(query)
             });
 
             if (!response.ok) {
-                throw new Error('Ошибка получения данных');
+                throw new Error('Ошибка получения данных: ' + response.status);
             }
 
             const data = await response.json();
             const routes = this.parseOSMData(data);
+
+            console.log('✅ Получено маршрутов:', routes.length);
 
             // Кэшируем результат
             this.cache.set(cacheKey, {
@@ -145,7 +154,7 @@ class TransportAPI {
             return routes;
 
         } catch (error) {
-            console.error('Ошибка получения маршрутов:', error);
+            console.error('❌ Ошибка получения маршрутов:', error);
             throw error;
         }
     }
