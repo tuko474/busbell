@@ -48,6 +48,7 @@ async function initApp() {
         console.error('❌ Ошибка инициализации:', error);
         
         // Fallback - предлагаем выбрать город вручную
+        updateLocationStatus('Выберите город вручную');
         showCitySelector();
     }
     
@@ -457,11 +458,23 @@ function showCitySelector() {
     const routesList = document.getElementById('routesList');
     
     let html = `
-        <div class="empty-state">
-            <div class="empty-state-icon">🌍</div>
-            <p>Выберите ваш город</p>
-            <select id="citySelector" style="margin-top: 20px; padding: 12px; border-radius: 10px; font-size: 16px;">
-                <option value="">Выберите город</option>
+        <div style="padding: 40px 20px; text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 20px;">🌍</div>
+            <h3 style="margin-bottom: 10px;">Выберите ваш город</h3>
+            <p style="color: #999; margin-bottom: 30px; font-size: 14px;">
+                Геолокация недоступна или заблокирована
+            </p>
+            <select id="citySelector" style="
+                width: 100%;
+                max-width: 300px;
+                padding: 15px;
+                border: 2px solid var(--primary-color);
+                border-radius: 10px;
+                font-size: 16px;
+                background: white;
+                cursor: pointer;
+            ">
+                <option value="">-- Выберите город --</option>
     `;
     
     cities.forEach(city => {
@@ -470,14 +483,21 @@ function showCitySelector() {
     
     html += `
             </select>
-            <button onclick="selectCityManually()" style="margin-top: 15px; padding: 12px 30px; background: var(--primary-color); color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 16px;">
-                Загрузить маршруты
-            </button>
         </div>
     `;
     
     routesList.innerHTML = html;
-    updateLocationStatus('Выберите город вручную');
+    
+    // Автоматическая загрузка при выборе города
+    document.getElementById('citySelector').addEventListener('change', async (e) => {
+        const city = e.target.value;
+        if (city) {
+            AppState.currentCity = city;
+            updateLocationStatus(city);
+            updateCityName(`${city} • Загрузка...`);
+            await loadRoutes(city);
+        }
+    });
 }
 
 /**
